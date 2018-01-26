@@ -1,0 +1,43 @@
+---
+- name: create nginx directory
+  file: path=/usr/local/benchmark/nginx/{{ item }} state=directory mode=0755
+  with_items: 
+  - build
+  - install
+
+- name: Install deps packages via yum
+  yum: name={{ item }} state=present
+  when: ansible_os_family == 'RedHat' 
+  with_items: 
+  - pcre-devel
+  - openssl-devel
+
+- name: Install deps packages via apt
+  yum: name={{ item }} state=present
+  when: ansible_os_family == 'Debian' 
+  with_items: 
+  - build_essential
+  - libpcre++-dev
+  - libssl-dev
+
+- name: Decompress nginx tarball
+  unarchive: 
+    src: pkg/nginx-{{ nginx_version }}.tar.gz 
+    dest: /usr/local/benchmark/nginx/build 
+    #creates=/opt/hadoop-{{ hadoop_version }} 
+    copy: yes
+
+- name: copy scripts to targetpath
+  copy: src=scripts dest=/usr/local/benchmark/nginx mode=0755
+
+- name: build nginx and install 
+  shell: sh scripts/build-nginx.sh
+  args:
+    chdir: /usr/local/benchmark/nginx
+
+- name: excution shell scripts
+  shell: sh scripts/make-ca.sh 
+  args:
+    chdir: /usr/local/benchmark/nginx
+  tags: test
+###########################################################################################

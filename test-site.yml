@@ -1,0 +1,7 @@
+---
+- name: Install Nginx web server on ARM64Server
+  hosts: all
+  roles:
+    - nginx
+    #- php-fpm
+
